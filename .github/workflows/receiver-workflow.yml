@@ -1,6 +1,6 @@
 # This workflow will build a Java project 
 
-name: Build Run and Test
+name: Build Run and Test - Receiver code
 
 on:
   push:
