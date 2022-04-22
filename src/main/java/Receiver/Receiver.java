@@ -1,4 +1,4 @@
-package Receiver;
+package receiver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,12 +74,8 @@ public class Receiver {
 
   }
 
-  private static Float findSimpleMovingAvg(final List<Float> range, final Float value) {
-
-    range.add(value);
-    if (range.size() > NO_OF_VALUES_IN_RANGE) {
-      range.remove(0);
-    }
+  public static Float findSimpleMovingAvg(final List<Float> range, final Float value) {
+    operateOnRange(range, value);
     if (range.size() == NO_OF_VALUES_IN_RANGE) {
       Float sum = Float.valueOf(0.0f);
 
@@ -92,7 +88,14 @@ public class Receiver {
 
   }
 
-  private static Float findMinValue(final Float streamValue, final Float refMinValue) {
+  public static void operateOnRange(final List<Float> range, final Float value) {
+    range.add(value);
+    if (range.size() > NO_OF_VALUES_IN_RANGE) {
+      range.remove(0);
+    }
+  }
+
+  public static Float findMinValue(final Float streamValue, final Float refMinValue) {
     Float minValue = refMinValue;
     if (streamValue < minValue) {
       minValue = streamValue;
@@ -100,7 +103,7 @@ public class Receiver {
     return minValue;
   }
 
-  private static Float findMaxValue(final Float streamValue, final Float refMaxValue) {
+  public static Float findMaxValue(final Float streamValue, final Float refMaxValue) {
     Float maxValue = refMaxValue;
     if (streamValue > maxValue) {
       maxValue = streamValue;
