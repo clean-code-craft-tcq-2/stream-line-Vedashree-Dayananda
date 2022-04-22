@@ -1,69 +1,113 @@
 package Receiver;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import org.junit.Test;
+public class Receiver {
+
+  public static final int NO_OF_VALUES_IN_RANGE = 5;
+  public static Float minTempValue;
+  public static Float maxTempValue;
+
+  public static Float minSocValue;
+  public static Float maxSocValue;
+
+  public static Float simpleMovingAvgForTemp;
+  public static Float simpleMovingAvgForSoc;
+
+  public static List<Float> simpleMovingAvgTempRange;
+  public static List<Float> simpleMovingAvgSocRange;
+  static final int NO_OF_SENSOR_DATA = 50;
 
 
-public class ReceiverTest {
-
-  List<Float> tempInputs = Arrays.asList(17f, 5f, 5f, 68f, 89f);
-  List<Float> socInputs = Arrays.asList(25f, 85f, 15f, 3f, 56f);
-
-  List<Float> expectedMinTemp = Arrays.asList(17f, 5f, 5f, 5f, 5f, 0.0f);
-  List<Float> expectedMaxTemp = Arrays.asList(17f, 17f, 17f, 68f, 89f, 100.0f);
-
-  List<Float> expectedMinSoc = Arrays.asList(25f, 25f, 15f, 3f, 3f, 0.0f);
-  List<Float> expectedMaxSoc = Arrays.asList(25f, 85f, 85f, 85f, 85f, 99.0f);
-
-  List<Float> expectedSMATemp = Arrays.asList(0.0f, 0.0f, 0.0f, 0.0f, 36.8f, 22.2f);
-  List<Float> expectedSMASoc = Arrays.asList(0.0f, 0.0f, 0.0f, 0.0f, 36.8f, 39.4f);
-
-  @Test
-  public void testStatisticsInStream() {
-    Receiver.resetStatistics();
-    for (int index = 0; index < this.tempInputs.size(); index++) {
-      Receiver.findStatisticsForValuesInStream(this.tempInputs.get(index), this.socInputs.get(index));
-
-      assertEquals(this.expectedMinTemp.get(index), Receiver.minTempValue);
-      assertEquals(this.expectedMaxTemp.get(index), Receiver.maxTempValue);
-      assertEquals(this.expectedSMATemp.get(index), Receiver.simpleMovingAvgForTemp);
-
-      assertEquals(this.expectedMinSoc.get(index), Receiver.minSocValue);
-      assertEquals(this.expectedMaxSoc.get(index), Receiver.maxSocValue);
-      assertEquals(this.expectedSMASoc.get(index), Receiver.simpleMovingAvgForSoc);
+  public static void main(final String[] args) {
+    Scanner inputScanner = new Scanner(System.in);
+    resetStatistics();
+    for (int data = 0; data < NO_OF_SENSOR_DATA; data++) {
+      Float[] inputsFromConsole = getInputsFromConsole(inputScanner);
+      findStatisticsForValuesInStream(inputsFromConsole[0], inputsFromConsole[1]);
+      printStatisticsToConsole();
     }
+    inputScanner.close();
   }
 
-  @Test
-  public void testReceiver() {
-    File paramtersFile = new File("BatteryParameterData.txt");
-    Receiver.resetStatistics();
-    try {
-      try (Scanner inputScanner = new Scanner(paramtersFile)) {
-        for (int data = 0; data < Receiver.NO_OF_SENSOR_DATA; data++) {
-          Float[] inputsFromConsole = Receiver.getInputsFromConsole(inputScanner);
-          Receiver.findStatisticsForValuesInStream(inputsFromConsole[0], inputsFromConsole[1]);
-          Receiver.printStatisticsToConsole();
-        }
-        assertEquals(this.expectedMinTemp.get(5), Receiver.minTempValue);
-        assertEquals(this.expectedMaxTemp.get(5), Receiver.maxTempValue);
-        assertEquals(this.expectedSMATemp.get(5), Receiver.simpleMovingAvgForTemp);
+  public static void resetStatistics() {
+    minTempValue = Float.MAX_VALUE;
+    maxTempValue = Float.MIN_VALUE;
 
-        assertEquals(this.expectedMinSoc.get(5), Receiver.minSocValue);
-        assertEquals(this.expectedMaxSoc.get(5), Receiver.maxSocValue);
-        assertEquals(this.expectedSMASoc.get(5), Receiver.simpleMovingAvgForSoc);
+    minSocValue = Float.MAX_VALUE;
+    maxSocValue = Float.MIN_VALUE;
+
+    simpleMovingAvgForTemp = 0.0f;
+    simpleMovingAvgForSoc = 0.0f;
+
+    simpleMovingAvgTempRange = new ArrayList<>();
+    simpleMovingAvgSocRange = new ArrayList<>();
+  }
+
+  public static void printStatisticsToConsole() {
+    System.out.println("Statistics for Data in Stream:");
+    System.out.println("Minimum Temperature and SOC: " + minTempValue + " , " + minSocValue);
+    System.out.println("Maximum Temperature and SOC: " + maxTempValue + " , " + maxSocValue);
+    System.out.println("SMA for Temperature and SOC: " + simpleMovingAvgForTemp + " , " + simpleMovingAvgForSoc);
+
+  }
+
+  public static Float[] getInputsFromConsole(final Scanner inputScanner) {
+    String sensorDataInCsv = inputScanner.nextLine();
+    String[] dataInStr = sensorDataInCsv.split(",");
+    Float[] sensorData = { Float.parseFloat(dataInStr[0]), Float.parseFloat(dataInStr[1]) };
+    return sensorData;
+  }
+
+  public static void findStatisticsForValuesInStream(final Float temp, final Float soc) {
+
+    Receiver.minTempValue = findMinValue(temp, Receiver.minTempValue);
+    Receiver.minSocValue = findMinValue(soc, Receiver.minSocValue);
+
+    Receiver.maxTempValue = findMaxValue(temp, Receiver.maxTempValue);
+    Receiver.maxSocValue = findMaxValue(soc, Receiver.maxSocValue);
+
+    simpleMovingAvgForTemp = findSimpleMovingAvg(simpleMovingAvgTempRange, temp);
+    simpleMovingAvgForSoc = findSimpleMovingAvg(simpleMovingAvgSocRange, soc);
+
+  }
+
+  public static Float findSimpleMovingAvg(final List<Float> range, final Float value) {
+    operateOnRange(range, value);
+    if (range.size() == NO_OF_VALUES_IN_RANGE) {
+      Float sum = Float.valueOf(0.0f);
+
+      for (int index = 0; index < range.size(); index++) {
+        sum = sum + range.get(index);
       }
+      return sum / NO_OF_VALUES_IN_RANGE;
     }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
+    return 0.0f;
+
+  }
+
+  public static void operateOnRange(final List<Float> range, final Float value) {
+    range.add(value);
+    if (range.size() > NO_OF_VALUES_IN_RANGE) {
+      range.remove(0);
     }
   }
 
+  public static Float findMinValue(final Float streamValue, final Float refMinValue) {
+    Float minValue = refMinValue;
+    if (streamValue < minValue) {
+      minValue = streamValue;
+    }
+    return minValue;
+  }
+
+  public static Float findMaxValue(final Float streamValue, final Float refMaxValue) {
+    Float maxValue = refMaxValue;
+    if (streamValue > maxValue) {
+      maxValue = streamValue;
+    }
+    return maxValue;
+  }
 }
