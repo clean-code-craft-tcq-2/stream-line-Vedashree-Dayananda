@@ -1,4 +1,4 @@
-package receiver;
+package Receiver;
 
 import java.util.ArrayList;
 import java.util.List;
