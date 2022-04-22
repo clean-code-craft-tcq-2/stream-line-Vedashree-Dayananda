@@ -5,32 +5,49 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Receiver {
+  
 
-  private static final int NO_OF_VALUES_IN_RANGE = 5;
+  public static final int NO_OF_VALUES_IN_RANGE = 5;
   public static Float minTempValue = Float.MAX_VALUE;
   public static Float maxTempValue = Float.MIN_VALUE;
 
   public static Float minSocValue = Float.MAX_VALUE;
   public static Float maxSocValue = Float.MIN_VALUE;
 
-  public static Float simpleMovingAvgForTemp = Float.NaN;
-  public static Float simpleMovingAvgForSoc = Float.NaN;
+  public static Float simpleMovingAvgForTemp = 0.0f;
+  public static Float simpleMovingAvgForSoc = 0.0f;
 
   public static List<Float> simpleMovingAvgTempRange = new ArrayList<>();
   public static List<Float> simpleMovingAvgSocRange = new ArrayList<>();
-  private static final int NO_OF_SENSOR_DATA = 50;
-  private static Scanner inputScanner = new Scanner(System.in);
+  static final int NO_OF_SENSOR_DATA = 50;
+
 
   public static void main(final String[] args) {
+    Scanner inputScanner = new Scanner(System.in);
+    resetStatistics();
     for (int data = 0; data < NO_OF_SENSOR_DATA; data++) {
-      Float[] inputsFromConsole = getInputsFromConsole();
+      Float[] inputsFromConsole = getInputsFromConsole(inputScanner);
       findStatisticsForValuesInStream(inputsFromConsole[0], inputsFromConsole[1]);
       printStatisticsToConsole();
     }
     inputScanner.close();
   }
 
-  private static void printStatisticsToConsole() {
+  public static void resetStatistics() {
+    minTempValue = Float.MAX_VALUE;
+    maxTempValue = Float.MIN_VALUE;
+
+    minSocValue = Float.MAX_VALUE;
+    maxSocValue = Float.MIN_VALUE;
+
+    simpleMovingAvgForTemp = 0.0f;
+    simpleMovingAvgForSoc = 0.0f;
+
+    simpleMovingAvgTempRange = new ArrayList<>();
+    simpleMovingAvgSocRange = new ArrayList<>();
+  }
+
+  public static void printStatisticsToConsole() {
     System.out.println("Statistics for Data in Stream:");
     System.out.println("Minimum Temperature and SOC: " + minTempValue + " , " + minSocValue);
     System.out.println("Maximum Temperature and SOC: " + maxTempValue + " , " + maxSocValue);
@@ -38,7 +55,7 @@ public class Receiver {
 
   }
 
-  private static Float[] getInputsFromConsole() {
+  public static Float[] getInputsFromConsole(final Scanner inputScanner) {
     String sensorDataInCsv = inputScanner.nextLine();
     String[] dataInStr = sensorDataInCsv.split(",");
     Float[] sensorData = { Float.parseFloat(dataInStr[0]), Float.parseFloat(dataInStr[1]) };
@@ -62,8 +79,8 @@ public class Receiver {
 
   private static Float findSimpleMovingAvg(final List<Float> range, final Float value) {
 
-    if (range.size() != NO_OF_VALUES_IN_RANGE) {
-      return Float.NaN;
+    if (range.size() < NO_OF_VALUES_IN_RANGE) {
+      return 0.0f;
     }
 
     range.remove(0);
