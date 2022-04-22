@@ -5,20 +5,19 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Receiver {
-  
 
   public static final int NO_OF_VALUES_IN_RANGE = 5;
-  public static Float minTempValue = Float.MAX_VALUE;
-  public static Float maxTempValue = Float.MIN_VALUE;
+  public static Float minTempValue;
+  public static Float maxTempValue;
 
-  public static Float minSocValue = Float.MAX_VALUE;
-  public static Float maxSocValue = Float.MIN_VALUE;
+  public static Float minSocValue;
+  public static Float maxSocValue;
 
-  public static Float simpleMovingAvgForTemp = 0.0f;
-  public static Float simpleMovingAvgForSoc = 0.0f;
+  public static Float simpleMovingAvgForTemp;
+  public static Float simpleMovingAvgForSoc;
 
-  public static List<Float> simpleMovingAvgTempRange = new ArrayList<>();
-  public static List<Float> simpleMovingAvgSocRange = new ArrayList<>();
+  public static List<Float> simpleMovingAvgTempRange;
+  public static List<Float> simpleMovingAvgSocRange;
   static final int NO_OF_SENSOR_DATA = 50;
 
 
@@ -71,27 +70,26 @@ public class Receiver {
     Receiver.maxSocValue = findMaxValue(soc, Receiver.maxSocValue);
 
     simpleMovingAvgForTemp = findSimpleMovingAvg(simpleMovingAvgTempRange, temp);
-
     simpleMovingAvgForSoc = findSimpleMovingAvg(simpleMovingAvgSocRange, soc);
-
 
   }
 
   private static Float findSimpleMovingAvg(final List<Float> range, final Float value) {
 
-    if (range.size() < NO_OF_VALUES_IN_RANGE) {
-      return 0.0f;
-    }
-
-    range.remove(0);
     range.add(value);
-
-    Float sum = (float) 0;
-
-    for (int index = 0; index < range.size(); index++) {
-      sum = sum + range.get(index);
+    if (range.size() > NO_OF_VALUES_IN_RANGE) {
+      range.remove(0);
     }
-    return sum / NO_OF_VALUES_IN_RANGE;
+    if (range.size() == NO_OF_VALUES_IN_RANGE) {
+      Float sum = Float.valueOf(0.0f);
+
+      for (int index = 0; index < range.size(); index++) {
+        sum = sum + range.get(index);
+      }
+      return sum / NO_OF_VALUES_IN_RANGE;
+    }
+    return 0.0f;
+
   }
 
   private static Float findMinValue(final Float streamValue, final Float refMinValue) {
