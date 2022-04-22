@@ -1,0 +1,46 @@
+name: Build and Run
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+
+    - name: install coverage tool
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcovr
+        
+    - name: build
+      run: g++ -Wall -Wextra -fprofile-arcs -ftest-coverage -o testchecker *.c*
+      
+    - name: pipe_sender_receiver
+      run: ./testchecker  | mvn compile exec:java -Dexec.mainClass="Receiver.Receiver"      
+
+    - name: collect coverage
+      run: gcovr --gcov-exclude=".*test.*" -r . --html --html-details -o coverage.html --print-summary
+
+    - name: create coverage artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage
+        path: ./*.html
+        retention-days: 21
+        
+    - name: Build and Generate coverage - Receiver code
+      run: mvn test jacoco:report
+      
+    - name: Upload coverage - Receiver code
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage - Receiver code
+        path: ./target/site/jacoco
+        retention-days: 21
